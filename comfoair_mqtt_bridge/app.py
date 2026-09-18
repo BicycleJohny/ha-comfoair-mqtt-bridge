@@ -124,7 +124,14 @@ class Bridge:
                 continue
             if not chunk:
                 raise ConnectionError("ComfoAir closed the TCP connection")
+            LOGGER.debug("RX %d bytes: %s", len(chunk), chunk.hex(" "))
             for frame in parser.feed(chunk):
+                LOGGER.debug(
+                    "RX frame 0x%02X (%d bytes): %s",
+                    frame.msg_id,
+                    len(frame.data),
+                    frame.data.hex(" "),
+                )
                 self._handle_frame(frame)
             await asyncio.sleep(5)
 
@@ -148,7 +155,14 @@ class Bridge:
                     "ComfoAir closed the TCP connection before replying "
                     f"to command 0x{command:02X}"
                 )
+            LOGGER.debug("RX %d bytes while waiting for 0x%02X: %s", len(chunk), response, chunk.hex(" "))
             for frame in parser.feed(chunk):
+                LOGGER.debug(
+                    "RX frame 0x%02X (%d bytes): %s",
+                    frame.msg_id,
+                    len(frame.data),
+                    frame.data.hex(" "),
+                )
                 if frame.msg_id == response:
                     self._handle_frame(frame)
                     return
@@ -160,7 +174,9 @@ class Bridge:
         async with self.write_lock:
             if self.writer is None:
                 raise ConnectionError("not connected")
-            self.writer.write(p.encode_frame(command, data))
+            wire_frame = p.encode_frame(command, data)
+            LOGGER.debug("TX command 0x%02X: %s", command, wire_frame.hex(" "))
+            self.writer.write(wire_frame)
             await self.writer.drain()
 
     def _handle_frame(self, frame: p.Frame) -> None:
