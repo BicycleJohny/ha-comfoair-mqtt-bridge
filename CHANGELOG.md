@@ -2,6 +2,14 @@
 
 Všechny významné změny tohoto projektu jsou uvedeny v tomto souboru.
 
+## [0.2.9] - 2026-09-19
+
+- Přidán MQTT Discovery přepínač pro společné nastavení úrovní přívodního a
+  odtahového ventilátoru.
+- Po zapnutí přepínače se hodnoty `Supply Air Level` zkopírují do odpovídajících
+  `Return Air Level` a každá další změna se zapíše v páru.
+- Po vypnutí lze úrovně přívodu a odtahu nastavovat samostatně.
+
 ## [0.2.8] - 2026-09-18
 
 - Odstraněny nepoužívané `number` entity:

@@ -37,6 +37,7 @@ class Bridge:
         self.mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="comfoair-bridge")
         self.state: dict[str, Any] = {}
         self.features: dict[str, bool] = {}
+        self.pair_fan_levels = False
         self.stop_event = asyncio.Event()
 
         mqtt_host = os.environ["MQTT_HOST"]
@@ -63,6 +64,7 @@ class Bridge:
         client.subscribe(self._topic("set/#"), qos=1)
         self._publish_discovery()
         self._publish("status", "online")
+        self._publish("pair_fan_levels", "ON" if self.pair_fan_levels else "OFF")
 
     def _mqtt_message(self, client, userdata, message) -> None:
         command = message.topic.removeprefix(self._topic("set/"))
@@ -85,6 +87,8 @@ class Bridge:
                 await self._send(p.CMD_SET_COMFORT_TEMPERATURE, bytes([p.temp_to_byte(temperature)]))
             elif command.startswith("fan/"):
                 await self._set_fan_percentage(command.removeprefix("fan/"), value)
+            elif command == "pair_fan_levels":
+                await self._set_pair_fan_levels(value)
             elif command.startswith("time_delay/"):
                 await self._set_time_delay(command.removeprefix("time_delay/"), value)
             elif command.startswith("ewt_postheating/"):
@@ -326,8 +330,53 @@ class Bridge:
                 "return_air_level_high", "supply_air_level_high")
         if key not in keys:
             raise ValueError(f"unknown fan percentage: {key}")
-        self.state[key] = max(15, min(95, int(float(value))))
+        numeric = max(15, min(95, int(float(value))))
+        self.state[key] = numeric
+        if self.pair_fan_levels:
+            paired_key = self._paired_fan_level(key)
+            self.state[paired_key] = numeric
         await self._send(p.CMD_SET_VENTILATION_LEVEL, bytes([self.state[k] for k in keys] + [0]))
+        self._publish_state()
+
+    async def _set_pair_fan_levels(self, value: str) -> None:
+        normalized = value.upper()
+        if normalized not in {"ON", "OFF", "1", "0", "TRUE", "FALSE"}:
+            raise ValueError("pair_fan_levels must be ON or OFF")
+        self.pair_fan_levels = normalized in {"ON", "1", "TRUE"}
+        if self.pair_fan_levels:
+            pairs = (
+                ("supply_air_level_absent", "return_air_level_absent"),
+                ("supply_air_level_low", "return_air_level_low"),
+                ("supply_air_level_medium", "return_air_level_medium"),
+                ("supply_air_level_high", "return_air_level_high"),
+            )
+            for supply_key, return_key in pairs:
+                if supply_key in self.state:
+                    self.state[return_key] = self.state[supply_key]
+            keys = ("return_air_level_absent", "return_air_level_low", "return_air_level_medium",
+                    "supply_air_level_absent", "supply_air_level_low", "supply_air_level_medium",
+                    "return_air_level_high", "supply_air_level_high")
+            if all(key in self.state for key in keys):
+                await self._send(
+                    p.CMD_SET_VENTILATION_LEVEL,
+                    bytes([self.state[key] for key in keys] + [0]),
+                )
+        self._publish("pair_fan_levels", "ON" if self.pair_fan_levels else "OFF")
+        self._publish_state()
+
+    @staticmethod
+    def _paired_fan_level(key: str) -> str:
+        pairs = {
+            "return_air_level_absent": "supply_air_level_absent",
+            "return_air_level_low": "supply_air_level_low",
+            "return_air_level_medium": "supply_air_level_medium",
+            "return_air_level_high": "supply_air_level_high",
+            "supply_air_level_absent": "return_air_level_absent",
+            "supply_air_level_low": "return_air_level_low",
+            "supply_air_level_medium": "return_air_level_medium",
+            "supply_air_level_high": "return_air_level_high",
+        }
+        return pairs[key]
 
     async def _set_time_delay(self, key: str, value: str) -> None:
         keys = ("bathroom_switch_on_delay_minutes", "bathroom_switch_off_delay_minutes",
@@ -391,6 +440,22 @@ class Bridge:
         )
         for key, name in (("filter_reset", "Reset filter"), ("error_reset", "Reset errors")):
             self._discovery("button", key, {"name": name, "command_topic": self._topic(f"set/{key}"), "payload_press": "PRESS", "device": device, **availability})
+        self._discovery(
+            "switch",
+            "pair_fan_levels",
+            {
+                "name": "Pair supply and return fan levels",
+                "unique_id": "comfoair_mqtt_bridge_pair_fan_levels",
+                "state_topic": self._topic("pair_fan_levels"),
+                "command_topic": self._topic("set/pair_fan_levels"),
+                "payload_on": "ON",
+                "payload_off": "OFF",
+                "state_on": "ON",
+                "state_off": "OFF",
+                "device": device,
+                **availability,
+            },
+        )
         temp_keys = {"outside_air_temperature", "supply_air_temperature", "return_air_temperature", "exhaust_air_temperature",
                      "ewt_temperature", "reheating_temperature", "kitchen_hood_temperature", "enthalpy_temperature"}
         pct_keys = {"supply_fan_speed", "exhaust_fan_speed", "return_air_level", "supply_air_level"}

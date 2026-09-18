@@ -47,6 +47,7 @@ configured base topic. Commands are accepted below `<base>/set/`, including:
 - `climate/fan_mode`: `off`, `low`, `medium`, `high`, `auto`
 - `climate/temperature`: Celsius value
 - `filter_reset`: `PRESS`
+- `pair_fan_levels`: `ON` or `OFF`
 
 The app creates MQTT climate and sensor entities through Home Assistant MQTT
 discovery. It also exposes fan tachometer/percentage sensors, operation-hour
@@ -65,6 +66,9 @@ English and Home Assistant's standard UI labels remain localized.
 Additional command topics use the same retained MQTT API:
 
 - `fan/<level_name>` for the eight supply/return fan percentages
+- `pair_fan_levels`: when enabled, each supply and return level is written as
+  a pair; the supply value is copied to the matching return level when the
+  switch is enabled
 - `time_delay/<name>` for switch/boost delays and filter warning weeks
 - `ewt_postheating/<name>` for EWT and postheating values
 - `error_reset`: `PRESS`
