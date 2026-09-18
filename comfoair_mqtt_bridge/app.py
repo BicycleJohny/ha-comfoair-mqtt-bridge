@@ -95,7 +95,11 @@ class Bridge:
                 await self._connect()
                 await self._poll_loop()
             except (ConnectionError, OSError, asyncio.TimeoutError) as err:
-                LOGGER.warning("ComfoAir connection lost: %s", err)
+                LOGGER.warning(
+                    "ComfoAir connection lost (%s): %s",
+                    type(err).__name__,
+                    err or "no error details",
+                )
                 await self._close()
                 await asyncio.sleep(5)
 
@@ -134,11 +138,18 @@ class Bridge:
             chunk = await asyncio.wait_for(
                 self.reader.read(256), timeout=max(0.1, deadline - self.loop.time())
             )
+            if not chunk:
+                raise ConnectionError(
+                    "ComfoAir closed the TCP connection before replying "
+                    f"to command 0x{command:02X}"
+                )
             for frame in parser.feed(chunk):
                 if frame.msg_id == response:
                     self._handle_frame(frame)
                     return
-        raise asyncio.TimeoutError
+        raise asyncio.TimeoutError(
+            f"no response 0x{response:02X} to command 0x{command:02X} within 3 seconds"
+        )
 
     async def _send(self, command: int, data: bytes = b"") -> None:
         async with self.write_lock:
