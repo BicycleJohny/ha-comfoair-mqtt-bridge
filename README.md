@@ -16,7 +16,7 @@ The setup form asks for the Waveshare IP address, TCP port (normally `8899`)
 and the MQTT base topic (normally `comfoair`). MQTT credentials are not stored
 by this integration; Home Assistant's configured MQTT connection is used.
 
-## Waveshare settings
+## RS232 Server settings
 
 Configure the adapter for transparent TCP communication:
 

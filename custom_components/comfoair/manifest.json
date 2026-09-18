@@ -1,6 +1,6 @@
 {
   "domain": "comfoair",
-  "name": "ComfoAir MQTT Bridge",
+  "name": "ComfoAir RS232 MQTT Bridge",
   "codeowners": [],
   "config_flow": true,
   "dependencies": ["mqtt"],
