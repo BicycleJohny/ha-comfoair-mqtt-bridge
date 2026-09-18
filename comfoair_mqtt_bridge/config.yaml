@@ -1,6 +1,6 @@
 name: ComfoAir MQTT Bridge
 slug: comfoair_mqtt_bridge
-version: "0.2.4"
+version: "0.2.6"
 description: Zehnder ComfoAir Standard 375 bridge for Waveshare RS232-to-Ethernet and MQTT
 startup: application
 boot: auto

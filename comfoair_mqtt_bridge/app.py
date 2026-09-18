@@ -193,6 +193,7 @@ class Bridge:
                     self.state["supply_air_temperature"] = temperature(frame.data[2])
                 if present & 4:
                     self.state["return_air_temperature"] = temperature(frame.data[3])
+                    self.state["current_temperature"] = temperature(frame.data[3])
             elif frame.msg_id == p.RES_GET_FAULTS and len(frame.data) >= 9:
                 self.state["filter_status"] = "Ok" if frame.data[8] == 0 else "Full"
             self._publish_state()
@@ -233,16 +234,32 @@ class Bridge:
             "fan_mode_command_topic": self._topic("set/climate/fan_mode"),
             "fan_modes": ["off", "low", "medium", "high", "auto"],
             "temperature_state_topic": self._topic("target_temperature"),
+            "current_temperature_topic": self._topic("current_temperature"),
             "temperature_command_topic": self._topic("set/climate/temperature"),
             "min_temp": 12,
             "max_temp": 29,
             "temp_step": 0.5,
+            "precision": 0.5,
             "temperature_unit": "C",
             **availability,
         }
         self.mqtt.publish(
             "homeassistant/climate/comfoair_mqtt_bridge/config",
             json.dumps(climate, separators=(",", ":")),
+            qos=1,
+            retain=True,
+        )
+        filter_reset = {
+            "name": "Reset filter",
+            "unique_id": "comfoair_mqtt_bridge_filter_reset",
+            "command_topic": self._topic("set/filter_reset"),
+            "payload_press": "PRESS",
+            "device": device,
+            **availability,
+        }
+        self.mqtt.publish(
+            "homeassistant/button/comfoair_mqtt_bridge/filter_reset/config",
+            json.dumps(filter_reset, separators=(",", ":")),
             qos=1,
             retain=True,
         )
