@@ -51,11 +51,16 @@ configured base topic. Commands are accepted below `<base>/set/`, including:
 The app creates MQTT climate and sensor entities through Home Assistant MQTT
 discovery. It also exposes fan tachometer/percentage sensors, operation-hour
 counters, temperatures, filter/error diagnostics, physical input and optional
-bypass/preheating/EWT/postheating entities. Writable fan percentages, time
-delays/filter warning weeks, and supported EWT/postheating settings are
-published as number entities; filter and error reset are buttons. Optional
-entities are only polled when the controller advertises the corresponding
-feature.
+bypass/preheating/EWT/postheating entities. Writable fan percentages, selected
+time delays, and filter warning weeks are published as slider number entities;
+filter and error reset are buttons. Optional entities are only polled when the
+controller advertises the corresponding feature.
+
+The available protocol provides a read-only bypass status command, but no
+verified command for forcing the bypass valve open or closed, so no bypass
+control switch is exposed. MQTT Discovery also does not provide per-user
+language variants for entity names; discovery names are therefore published in
+English and Home Assistant's standard UI labels remain localized.
 
 Additional command topics use the same retained MQTT API:
 

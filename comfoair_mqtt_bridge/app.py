@@ -398,10 +398,9 @@ class Bridge:
         hours_keys = {"level0_hours", "level1_hours", "level2_hours", "level3_hours", "frost_protection_hours", "preheating_hours", "bypass_open_hours", "filter_hours"}
         number_keys = {"return_air_level_absent", "return_air_level_low", "return_air_level_medium", "return_air_level_high",
                        "supply_air_level_absent", "supply_air_level_low", "supply_air_level_medium", "supply_air_level_high",
-                       "bathroom_switch_on_delay_minutes", "bathroom_switch_off_delay_minutes", "l1_switch_off_delay_minutes",
-                       "boost_ventilation_minutes", "filter_warning_weeks", "rf_high_time_short_minutes", "rf_high_time_long_minutes",
-                       "extractor_hood_switch_off_delay_minutes", "ewt_low_temperature", "ewt_high_temperature", "ewt_speed_up",
-                       "kitchen_hood_speed_up", "postheating_target_temperature"}
+                       "bathroom_switch_on_delay_minutes", "bathroom_switch_off_delay_minutes",
+                       "boost_ventilation_minutes", "filter_warning_weeks", "rf_high_time_short_minutes",
+                       "rf_high_time_long_minutes"}
         sensor_keys = {"supply_fan_speed", "exhaust_fan_speed", "supply_fan_speed_rpm", "exhaust_fan_speed_rpm",
                        "ventilation_level", "return_air_level", "supply_air_level", "outside_air_temperature",
                        "supply_air_temperature", "return_air_temperature", "exhaust_air_temperature", "filter_status",
@@ -411,6 +410,17 @@ class Bridge:
                        "frost_protection_level", "enthalpy_temperature", "ewt_temperature", "reheating_temperature",
                        "kitchen_hood_temperature", "analog_input_1", "analog_input_2", "analog_input_3", "analog_input_4",
                        "postheating_power", "postheating_power_i"}
+        removed_number_keys = {
+            "ewt_high_temperature",
+            "ewt_low_temperature",
+            "ewt_speed_up",
+            "extractor_hood_switch_off_delay_minutes",
+            "kitchen_hood_speed_up",
+            "l1_switch_off_delay_minutes",
+            "postheating_target_temperature",
+        }
+        for key in removed_number_keys:
+            self._remove_discovery("number", key)
         for key in set(self.state) | temp_keys | pct_keys | rpm_keys | hours_keys | sensor_keys:
             if key in number_keys:
                 continue
@@ -426,7 +436,7 @@ class Bridge:
             self._discovery("binary_sensor", key, {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "payload_on": "True", "payload_off": "False", "device": device, **availability})
         for key in sorted(number_keys):
             command_group = "fan" if "level" in key else "time_delay" if key.endswith("minutes") or key == "filter_warning_weeks" else "ewt_postheating"
-            config = {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "command_topic": self._topic(f"set/{command_group}/{key}"), "device": device, **availability, "mode": "box"}
+            config = {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "command_topic": self._topic(f"set/{command_group}/{key}"), "device": device, **availability, "mode": "slider"}
             if "temperature" in key: config.update({"unit_of_measurement": "°C", "min": -20, "max": 40, "step": 0.5})
             elif "level" in key or "speed_up" in key: config.update({"unit_of_measurement": "%", "min": 0 if "speed_up" in key else 15, "max": 100 if "speed_up" in key else 95, "step": 1})
             elif key == "filter_warning_weeks": config.update({"unit_of_measurement": "weeks", "min": 1, "max": 52, "step": 1})
@@ -435,6 +445,14 @@ class Bridge:
 
     def _discovery(self, component: str, key: str, config: dict[str, Any]) -> None:
         self.mqtt.publish(f"homeassistant/{component}/comfoair_mqtt_bridge/{key}/config", json.dumps(config, separators=(",", ":")), qos=1, retain=True)
+
+    def _remove_discovery(self, component: str, key: str) -> None:
+        self.mqtt.publish(
+            f"homeassistant/{component}/comfoair_mqtt_bridge/{key}/config",
+            payload=None,
+            qos=1,
+            retain=True,
+        )
 
     async def _close(self) -> None:
         if self.writer is not None:
