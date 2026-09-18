@@ -49,7 +49,20 @@ configured base topic. Commands are accepted below `<base>/set/`, including:
 - `filter_reset`: `PRESS`
 
 The app creates MQTT climate and sensor entities through Home Assistant MQTT
-discovery.
+discovery. It also exposes fan tachometer/percentage sensors, operation-hour
+counters, temperatures, filter/error diagnostics, physical input and optional
+bypass/preheating/EWT/postheating entities. Writable fan percentages, time
+delays/filter warning weeks, and supported EWT/postheating settings are
+published as number entities; filter and error reset are buttons. Optional
+entities are only polled when the controller advertises the corresponding
+feature.
+
+Additional command topics use the same retained MQTT API:
+
+- `fan/<level_name>` for the eight supply/return fan percentages
+- `time_delay/<name>` for switch/boost delays and filter warning weeks
+- `ewt_postheating/<name>` for EWT and postheating values
+- `error_reset`: `PRESS`
 
 ## Logging
 

@@ -13,8 +13,14 @@ CHECKSUM_SEED = 173
 
 CMD_GET_FIRMWARE_VERSION = 0x69
 RES_GET_FIRMWARE_VERSION = 0x6A
+CMD_GET_INPUTS = 0x03
+RES_GET_INPUTS = 0x04
 CMD_GET_FAN_STATUS = 0x0B
 RES_GET_FAN_STATUS = 0x0C
+CMD_GET_ANALOG_INPUTS = 0x13
+RES_GET_ANALOG_INPUTS = 0x14
+CMD_GET_VALVE_STATUS = 0x0D
+RES_GET_VALVE_STATUS = 0x0E
 CMD_GET_VENTILATION_LEVEL = 0xCD
 RES_GET_VENTILATION_LEVEL = 0xCE
 CMD_GET_TEMPERATURES = 0xD1
@@ -23,9 +29,24 @@ CMD_GET_STATUS = 0xD5
 RES_GET_STATUS = 0xD6
 CMD_GET_FAULTS = 0xD9
 RES_GET_FAULTS = 0xDA
+CMD_GET_OPERATION_HOURS = 0xDD
+RES_GET_OPERATION_HOURS = 0xDE
+CMD_GET_BYPASS_CONTROL_STATUS = 0xDF
+RES_GET_BYPASS_CONTROL_STATUS = 0xE0
+CMD_GET_PREHEATING_STATUS = 0xE1
+RES_GET_PREHEATING_STATUS = 0xE2
+CMD_GET_SENSOR_DATA = 0x97
+RES_GET_SENSOR_DATA = 0x98
+CMD_GET_TIME_DELAY = 0xC9
+RES_GET_TIME_DELAY = 0xCA
+CMD_GET_EWT_POSTHEATING = 0xEB
+RES_GET_EWT_POSTHEATING = 0xEC
 CMD_SET_LEVEL = 0x99
+CMD_SET_VENTILATION_LEVEL = 0xCF
 CMD_SET_COMFORT_TEMPERATURE = 0xD3
+CMD_SET_TIME_DELAY = 0xCB
 CMD_RESET_AND_SELF_TEST = 0xDB
+CMD_SET_EWT_POSTHEATING = 0xED
 
 
 @dataclass(frozen=True)
@@ -138,3 +159,23 @@ class FrameParser:
         if self._body[-1] != _checksum(cmd, data):
             return None
         return Frame(cmd, data)
+
+
+def byte_to_temp(value: int) -> float:
+    return value / 2.0 - 20.0
+
+
+def temp_to_byte(celsius: float) -> int:
+    return int((celsius + 20.0) * 2.0) & 0xFF
+
+
+def u16(data: bytes, offset: int) -> int:
+    return (data[offset] << 8) | data[offset + 1]
+
+
+def u24(data: bytes, offset: int) -> int:
+    return (data[offset] << 16) | (data[offset + 1] << 8) | data[offset + 2]
+
+
+def rpm_from_period(raw: int) -> int:
+    return 0 if raw == 0 else int(1875000 / raw)
