@@ -17,7 +17,9 @@ service provided by Home Assistant.
 
 The app obtains MQTT host and credentials from the Home Assistant Supervisor
 service. MQTT credentials are not stored in this repository or in the app
-source code.
+source code. The app image is built locally by Home Assistant from the
+repository's `build.yaml`; no GHCR login or public container package is
+required.
 
 The former `custom_components/comfoair` directory is retained as a reusable
 protocol-based integration reference. The supported Home Assistant OS
