@@ -1,20 +1,27 @@
 # ComfoAir RS232 MQTT Bridge
 
-Home Assistant custom integration for Zehnder ComfoAir Standard 375 connected
-through a Waveshare RS232 to Ethernet (B) adapter. The integration uses the
-ComfoAir wire protocol over a TCP stream and publishes MQTT auto-discovery
-entities through the MQTT integration already configured in Home Assistant.
+Home Assistant OS add-on for Zehnder ComfoAir Standard 375 connected through a
+Waveshare RS232 to Ethernet (B) adapter. The add-on uses the ComfoAir wire
+protocol over TCP and publishes MQTT auto-discovery entities through the MQTT
+service provided by Home Assistant.
 
-## Install through HACS
+## Install as a Home Assistant app
 
-1. Add this GitHub repository as a **Custom repository** in HACS.
-2. Select category **Integration** and install **ComfoAir RS232 MQTT Bridge**.
-3. Restart Home Assistant.
-4. Add the integration in **Settings → Devices & services**.
+1. Open **Settings → Apps → App store**.
+2. Add this repository URL as an app repository:
+   `https://github.com/BicycleJohny/ha-comfoair-rs232-mqtt-bridge`
+3. Install **ComfoAir MQTT Bridge**.
+4. Configure the Waveshare IP address, TCP port (normally `8899`), MQTT base
+   topic, and log level.
+5. Start the app and enable **Start on boot**.
 
-The setup form asks for the Waveshare IP address, TCP port (normally `8899`)
-and the MQTT base topic (normally `comfoair`). MQTT credentials are not stored
-by this integration; Home Assistant's configured MQTT connection is used.
+The app obtains MQTT host and credentials from the Home Assistant Supervisor
+service. MQTT credentials are not stored in this repository or in the app
+source code.
+
+The former `custom_components/comfoair` directory is retained as a reusable
+protocol-based integration reference. The supported Home Assistant OS
+deployment is the `comfoair_mqtt_bridge` add-on.
 
 ## RS232 Server settings
 
@@ -39,5 +46,12 @@ configured base topic. Commands are accepted below `<base>/set/`, including:
 - `climate/temperature`: Celsius value
 - `filter_reset`: `PRESS`
 
-The component also creates native Home Assistant entities backed by the same
-coordinator, including diagnostic sensors and fan-level controls.
+The app creates MQTT climate and sensor entities through Home Assistant MQTT
+discovery.
+
+## Logging
+
+The app writes its own structured log output to the Home Assistant app log.
+Use the `log_level` option (`DEBUG`, `INFO`, `WARNING`, or `ERROR`) to control
+verbosity. Normal operation logs only connection, MQTT, and warning/error
+events; frame-level details are available at `DEBUG`.

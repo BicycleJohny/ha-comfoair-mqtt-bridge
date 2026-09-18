@@ -1,0 +1,27 @@
+name: ComfoAir MQTT Bridge
+slug: comfoair_mqtt_bridge
+version: "0.2.0"
+description: Zehnder ComfoAir Standard 375 bridge for Waveshare RS232-to-Ethernet and MQTT
+startup: application
+boot: auto
+init: false
+host_network: true
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+options:
+  comfoair_host: ""
+  comfoair_port: 8899
+  mqtt_base_topic: comfoair
+  log_level: INFO
+schema:
+  comfoair_host: str
+  comfoair_port: port
+  mqtt_base_topic: str
+  log_level: list(DEBUG|INFO|WARNING|ERROR)
+services:
+  - mqtt:need
+image: ghcr.io/bicyclejohny/ha-comfoair-mqtt-bridge-{arch}
+url: https://github.com/BicycleJohny/ha-comfoair-rs232-mqtt-bridge
