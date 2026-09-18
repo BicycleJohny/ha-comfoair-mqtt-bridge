@@ -135,9 +135,14 @@ class Bridge:
         parser = p.FrameParser()
         deadline = self.loop.time() + 3
         while self.loop.time() < deadline:
-            chunk = await asyncio.wait_for(
-                self.reader.read(256), timeout=max(0.1, deadline - self.loop.time())
-            )
+            remaining = max(0.1, deadline - self.loop.time())
+            try:
+                chunk = await asyncio.wait_for(self.reader.read(256), timeout=remaining)
+            except asyncio.TimeoutError as err:
+                raise asyncio.TimeoutError(
+                    f"no response 0x{response:02X} to command "
+                    f"0x{command:02X} within 3 seconds"
+                ) from err
             if not chunk:
                 raise ConnectionError(
                     "ComfoAir closed the TCP connection before replying "
