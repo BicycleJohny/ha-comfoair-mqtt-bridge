@@ -1,0 +1,63 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# Type checking and linting caches
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Packaging/build output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Local Home Assistant files and secrets
+.storage/
+secrets.yaml
+*.secret.yaml
+*.local.yaml
+
+# Local development configuration
+.env
+.env.*
+!.env.example
+config/
+home-assistant.log
+home-assistant.log.*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local logs and temporary files
+*.log
+*.tmp
+*.temp

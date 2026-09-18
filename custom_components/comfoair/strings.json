@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ComfoAir RS232 MQTT Bridge",
+        "description": "Connect a Zehnder ComfoAir Standard to a Waveshare RS232-to-Ethernet adapter.",
+        "data": {
+          "name": "Name",
+          "host": "Waveshare host",
+          "port": "TCP port",
+          "mqtt_topic": "MQTT base topic"
+        }
+      },
+      "init": {
+        "title": "ComfoAir RS232 MQTT Bridge settings",
+        "description": "Change the Waveshare network address, TCP port, or MQTT base topic.",
+        "data": {
+          "host": "Waveshare IP address",
+          "port": "TCP port",
+          "mqtt_topic": "MQTT base topic"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the adapter or the ventilation unit."
+    },
+    "abort": {
+      "already_configured": "This adapter is already configured."
+    }
+  }
+}

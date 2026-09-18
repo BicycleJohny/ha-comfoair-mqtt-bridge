@@ -1,0 +1,21 @@
+[project]
+name = "ha-comfoair-rs232-mqtt-bridge"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "homeassistant>=2026.6.0",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning:josepy.util",
+    "ignore::DeprecationWarning:acme.crypto_util",
+    "ignore::DeprecationWarning:homeassistant.components.http",
+]

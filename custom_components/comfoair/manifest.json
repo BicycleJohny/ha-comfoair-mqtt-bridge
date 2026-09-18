@@ -1,0 +1,13 @@
+{
+  "domain": "comfoair",
+  "name": "ComfoAir MQTT Bridge",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["mqtt"],
+  "documentation": "https://github.com/BicycleJohny/ha-comfoair-mqtt-bridge",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/BicycleJohny/ha-comfoair-mqtt-bridge/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
