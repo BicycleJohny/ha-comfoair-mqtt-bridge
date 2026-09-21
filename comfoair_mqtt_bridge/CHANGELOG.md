@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11] - 2026-09-21
+
+- Kept the climate entity, Boost/Bathroom switch, and filter reset as primary
+  controls.
+- Moved other writable entities, including error reset, fan pairing,
+  calibration, and delays, to the device Settings section.
+
 ## [0.2.10] - 2026-09-21
 
 - Added Boost/Bathroom control through an MQTT Discovery switch.

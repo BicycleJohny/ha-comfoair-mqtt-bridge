@@ -54,8 +54,9 @@ The Boost / Bathroom switch emulates the CC-Ease fan-button action used by the
 ComfoAir controller. It does not electrically switch the physical bathroom
 input.
 
-Configuration controls such as Boost/Bathroom, fan-level calibration, delay
-times, fan pairing, and reset actions are marked as Home Assistant
+The climate entity, Boost/Bathroom switch, and filter reset are primary
+controls. Other writable entities, including fan-level calibration, delay
+times, fan pairing, and error reset, are marked as Home Assistant
 configuration entities and appear under the device's **Settings** section.
 - `pair_fan_levels`: `ON` or `OFF`
 

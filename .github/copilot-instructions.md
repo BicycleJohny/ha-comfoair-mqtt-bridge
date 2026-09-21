@@ -70,9 +70,10 @@ coordinator/transport separation and its feature-gated polling.
   availability is published as `online`/`offline`.
 - Boolean MQTT payloads are `ON`/`OFF`. This is required for Home Assistant
   MQTT entities and compatibility with `TimWeyand/lovelace-comfoair`.
-- Keep the climate entity as the primary control. Configuration-oriented
-  entities such as Boost/Bathroom, fan pairing, calibration, delays, and reset
-  actions use MQTT Discovery `entity_category: config`.
+- Keep the climate entity, Boost/Bathroom switch, and filter reset as primary
+  controls without MQTT Discovery `entity_category`. Other writable entities,
+  including fan pairing, calibration, delays, and error reset, use
+  `entity_category: config`.
 - Optional entities and polling commands must be gated by feature flags learned
   from the ComfoAir status response. Do not publish controls for unsupported
   hardware features.

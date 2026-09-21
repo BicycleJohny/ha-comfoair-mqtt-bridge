@@ -501,13 +501,21 @@ class Bridge:
                 "state_on": "ON",
                 "state_off": "OFF",
                 "icon": "mdi:fan-clock",
-                "entity_category": "config",
                 "device": device,
                 **availability,
             },
         )
         for key, name in (("filter_reset", "Reset filter"), ("error_reset", "Reset errors")):
-            self._discovery("button", key, {"name": name, "command_topic": self._topic(f"set/{key}"), "payload_press": "PRESS", "entity_category": "config", "device": device, **availability})
+            config = {
+                "name": name,
+                "command_topic": self._topic(f"set/{key}"),
+                "payload_press": "PRESS",
+                "device": device,
+                **availability,
+            }
+            if key != "filter_reset":
+                config["entity_category"] = "config"
+            self._discovery("button", key, config)
         self._discovery(
             "switch",
             "pair_fan_levels",
