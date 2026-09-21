@@ -6,6 +6,8 @@
   controls.
 - Moved other writable entities, including error reset, fan pairing,
   calibration, and delays, to the device Settings section.
+- Stabilized and corrected the climate MQTT Discovery configuration so the
+  primary climate control remains visible after updates.
 
 ## [0.2.10] - 2026-09-21
 

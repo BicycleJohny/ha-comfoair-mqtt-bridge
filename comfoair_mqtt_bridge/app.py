@@ -461,6 +461,7 @@ class Bridge:
         }
         climate = {
             "name": "Ventilation",
+            "object_id": "ventilation",
             "unique_id": "comfoair_mqtt_bridge_climate",
             "device": device,
             "mode_state_topic": self._topic("climate/mode"),
@@ -473,7 +474,7 @@ class Bridge:
             "preset_mode_state_topic": self._topic("climate/preset"),
             "preset_mode_command_topic": self._topic("set/climate/preset"),
             "temperature_state_topic": self._topic("target_temperature"),
-            "current_temperature_topic": self._topic("current_temperature"),
+            "current_temperature_topic": self._topic("climate/current_temperature"),
             "temperature_command_topic": self._topic("set/climate/temperature"),
             "min_temp": 12,
             "max_temp": 29,
