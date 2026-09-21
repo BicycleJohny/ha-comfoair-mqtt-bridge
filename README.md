@@ -45,8 +45,18 @@ configured base topic. Commands are accepted below `<base>/set/`, including:
 
 - `climate/mode`: `off` or `fan_only`
 - `climate/fan_mode`: `off`, `low`, `medium`, `high`, `auto`
+- `climate/preset`: `none` or `boost`
 - `climate/temperature`: Celsius value
+- `boost`: `ON` or `OFF` for the Boost / Bathroom switch
 - `filter_reset`: `PRESS`
+
+The Boost / Bathroom switch emulates the CC-Ease fan-button action used by the
+ComfoAir controller. It does not electrically switch the physical bathroom
+input.
+
+Configuration controls such as Boost/Bathroom, fan-level calibration, delay
+times, fan pairing, and reset actions are marked as Home Assistant
+configuration entities and appear under the device's **Settings** section.
 - `pair_fan_levels`: `ON` or `OFF`
 
 The app creates MQTT climate and sensor entities through Home Assistant MQTT

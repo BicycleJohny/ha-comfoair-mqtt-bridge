@@ -65,6 +65,7 @@ class Bridge:
         self._publish_discovery()
         self._publish("status", "online")
         self._publish("pair_fan_levels", "ON" if self.pair_fan_levels else "OFF")
+        self._publish("boost_active", "ON" if self.state.get("boost_active") else "OFF")
 
     def _mqtt_message(self, client, userdata, message) -> None:
         command = message.topic.removeprefix(self._topic("set/"))
@@ -85,6 +86,15 @@ class Bridge:
                 if not 12 <= temperature <= 29:
                     raise ValueError("temperature must be between 12 and 29 °C")
                 await self._send(p.CMD_SET_COMFORT_TEMPERATURE, bytes([p.temp_to_byte(temperature)]))
+            elif command in {"boost", "boost_switch", "climate/preset"}:
+                if command == "climate/preset" and value != "boost":
+                    await self._cancel_boost()
+                elif value.upper() in {"ON", "1", "TRUE", "BOOST"}:
+                    await self._activate_boost()
+                elif value.upper() in {"OFF", "0", "FALSE", "NONE"}:
+                    await self._cancel_boost()
+                else:
+                    raise ValueError("boost accepts ON or OFF")
             elif command.startswith("fan/"):
                 await self._set_fan_percentage(command.removeprefix("fan/"), value)
             elif command == "pair_fan_levels":
@@ -131,6 +141,7 @@ class Bridge:
             await self._send(p.CMD_GET_VENTILATION_LEVEL)
             await self._send(p.CMD_GET_TEMPERATURES)
             await self._send(p.CMD_GET_FAULTS)
+            await self._send(p.CMD_CC_EASE_KEY_STATUS, bytes(7))
             await self._send(p.CMD_GET_OPERATION_HOURS)
             await self._send(p.CMD_GET_TIME_DELAY)
             await self._send(p.CMD_GET_VALVE_STATUS)
@@ -292,6 +303,9 @@ class Bridge:
                     "postheating_power_i": frame.data[5], "postheating_target_temperature": p.byte_to_temp(frame.data[6])})
             elif frame.msg_id == p.RES_GET_FAULTS and len(frame.data) >= 9:
                 self.state["filter_status"] = "Ok" if frame.data[8] == 0 else "Full"
+                self.state["filter_warning"] = frame.data[8] != 0
+            elif frame.msg_id == p.RES_CC_EASE_DISPLAY and len(frame.data) >= 9:
+                self.state["boost_active"] = (frame.data[8] & 0x78) == 0x78
                 if len(frame.data) >= 17:
                     self.state.update({
                         "current_errors": self._format_errors(frame.data[0], frame.data[13], frame.data[1], frame.data[9]),
@@ -300,8 +314,35 @@ class Bridge:
                         "third_last_errors": self._format_errors(frame.data[6], frame.data[16], frame.data[7], frame.data[12]),
                     })
             self._publish_state()
+
         except (IndexError, ValueError) as err:
             LOGGER.warning("Invalid ComfoAir frame 0x%02X: %s", frame.msg_id, err)
+
+    async def _activate_boost(self) -> None:
+        """Emulate a long fan-button press on a CC-Ease controller."""
+        await self._send(
+            p.CMD_CC_EASE_KEY_STATUS,
+            bytes([0x80, 0, 0, 0, 0, 0, 0x02]),
+        )
+        await asyncio.sleep(0.1)
+        await self._send(
+            p.CMD_CC_EASE_KEY_STATUS,
+            bytes([0xC0, 0, 0, 0, 0, 0, 0x03]),
+        )
+        await self._send(p.CMD_CC_EASE_KEY_STATUS, bytes(7))
+
+    async def _cancel_boost(self) -> None:
+        """Emulate a short fan-button press on a CC-Ease controller."""
+        await self._send(
+            p.CMD_CC_EASE_KEY_STATUS,
+            bytes([0x06, 0, 0, 0, 0, 0, 0x02]),
+        )
+        await asyncio.sleep(0.1)
+        await self._send(
+            p.CMD_CC_EASE_KEY_STATUS,
+            bytes([0x0C, 0, 0, 0, 0, 0, 0x03]),
+        )
+        await self._send(p.CMD_CC_EASE_KEY_STATUS, bytes(7))
 
     @staticmethod
     def _format_errors(a_low: int, a_high: int, e: int, ea: int) -> str:
@@ -320,8 +361,14 @@ class Bridge:
             self._publish("climate/fan_mode", {0: "auto", 1: "off", 2: "low", 3: "medium", 4: "high"}.get(level, "auto"))
             if "current_temperature" in self.state:
                 self._publish("climate/current_temperature", self.state["current_temperature"])
+        if "boost_active" in self.state:
+            boost = "ON" if self.state["boost_active"] else "OFF"
+            self._publish("boost_active", boost)
+            self._publish("climate/preset", "boost" if self.state["boost_active"] else "none")
 
     def _publish(self, suffix: str, value: Any) -> None:
+        if isinstance(value, bool):
+            value = "ON" if value else "OFF"
         self.mqtt.publish(self._topic(suffix), str(value), qos=1, retain=True)
 
     async def _set_fan_percentage(self, key: str, value: str) -> None:
@@ -422,6 +469,9 @@ class Bridge:
             "fan_mode_state_topic": self._topic("climate/fan_mode"),
             "fan_mode_command_topic": self._topic("set/climate/fan_mode"),
             "fan_modes": ["off", "low", "medium", "high", "auto"],
+            "preset_modes": ["none", "boost"],
+            "preset_mode_state_topic": self._topic("climate/preset"),
+            "preset_mode_command_topic": self._topic("set/climate/preset"),
             "temperature_state_topic": self._topic("target_temperature"),
             "current_temperature_topic": self._topic("current_temperature"),
             "temperature_command_topic": self._topic("set/climate/temperature"),
@@ -438,8 +488,26 @@ class Bridge:
             qos=1,
             retain=True,
         )
+        self._discovery(
+            "switch",
+            "boost",
+            {
+                "name": "Boost / Bathroom switch",
+                "unique_id": "comfoair_mqtt_bridge_boost",
+                "state_topic": self._topic("boost_active"),
+                "command_topic": self._topic("set/boost"),
+                "payload_on": "ON",
+                "payload_off": "OFF",
+                "state_on": "ON",
+                "state_off": "OFF",
+                "icon": "mdi:fan-clock",
+                "entity_category": "config",
+                "device": device,
+                **availability,
+            },
+        )
         for key, name in (("filter_reset", "Reset filter"), ("error_reset", "Reset errors")):
-            self._discovery("button", key, {"name": name, "command_topic": self._topic(f"set/{key}"), "payload_press": "PRESS", "device": device, **availability})
+            self._discovery("button", key, {"name": name, "command_topic": self._topic(f"set/{key}"), "payload_press": "PRESS", "entity_category": "config", "device": device, **availability})
         self._discovery(
             "switch",
             "pair_fan_levels",
@@ -452,6 +520,7 @@ class Bridge:
                 "payload_off": "OFF",
                 "state_on": "ON",
                 "state_off": "OFF",
+                "entity_category": "config",
                 "device": device,
                 **availability,
             },
@@ -468,7 +537,7 @@ class Bridge:
                        "rf_high_time_long_minutes"}
         sensor_keys = {"supply_fan_speed", "exhaust_fan_speed", "supply_fan_speed_rpm", "exhaust_fan_speed_rpm",
                        "ventilation_level", "return_air_level", "supply_air_level", "outside_air_temperature",
-                       "supply_air_temperature", "return_air_temperature", "exhaust_air_temperature", "filter_status",
+                       "supply_air_temperature", "return_air_temperature", "exhaust_air_temperature",
                        "current_errors", "last_errors", "second_last_errors", "third_last_errors", "bypass_valve",
                        "bypass_factor", "bypass_step", "bypass_correction", "bypass_open_hours", "motor_current_bypass",
                        "motor_current_preheating", "preheating_hours", "frost_protection_minutes", "preheating_valve",
@@ -486,6 +555,7 @@ class Bridge:
         }
         for key in removed_number_keys:
             self._remove_discovery("number", key)
+        self._remove_discovery("sensor", "filter_status")
         for key in set(self.state) | temp_keys | pct_keys | rpm_keys | hours_keys | sensor_keys:
             if key in number_keys:
                 continue
@@ -495,13 +565,13 @@ class Bridge:
             elif key in rpm_keys: config.update({"unit_of_measurement": "rpm"})
             elif key in hours_keys: config.update({"unit_of_measurement": "h", "device_class": "duration"})
             self._discovery("sensor", key, config)
-        for key in ("supply_fan_active", "frost_protection_active", "summer_mode", "bypass_valve_open", "preheating_state",
+        for key in ("filter_warning", "supply_fan_active", "frost_protection_active", "summer_mode", "bypass_valve_open", "preheating_state",
                     "step_switch_l1", "step_switch_l2", "bathroom_switch", "bathroom_switch_2", "external_filter_switch",
                     "heat_recovery_switch", "kitchen_hood_switch", "preheating_valve_open"):
-            self._discovery("binary_sensor", key, {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "payload_on": "True", "payload_off": "False", "device": device, **availability})
+            self._discovery("binary_sensor", key, {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "payload_on": "ON", "payload_off": "OFF", "device": device, **availability})
         for key in sorted(number_keys):
             command_group = "fan" if "level" in key else "time_delay" if key.endswith("minutes") or key == "filter_warning_weeks" else "ewt_postheating"
-            config = {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "command_topic": self._topic(f"set/{command_group}/{key}"), "device": device, **availability, "mode": "slider"}
+            config = {"name": key.replace("_", " ").title(), "unique_id": f"comfoair_mqtt_bridge_{key}", "state_topic": self._topic(key), "command_topic": self._topic(f"set/{command_group}/{key}"), "entity_category": "config", "device": device, **availability, "mode": "slider"}
             if "temperature" in key: config.update({"unit_of_measurement": "°C", "min": -20, "max": 40, "step": 0.5})
             elif "level" in key or "speed_up" in key: config.update({"unit_of_measurement": "%", "min": 0 if "speed_up" in key else 15, "max": 100 if "speed_up" in key else 95, "step": 1})
             elif key == "filter_warning_weeks": config.update({"unit_of_measurement": "weeks", "min": 1, "max": 52, "step": 1})
