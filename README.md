@@ -9,7 +9,7 @@ service provided by Home Assistant.
 
 1. Open **Settings → Apps → App store**.
 2. Add this repository URL as an app repository:
-   `https://github.com/BicycleJohny/ha-comfoair-rs232-mqtt-bridge`
+   `https://github.com/BicycleJohny/ha-comfoair-mqtt-bridge`
 3. Install **ComfoAir MQTT Bridge**.
 4. Configure the Waveshare IP address, TCP port (normally `8899`), MQTT base
    topic, and log level.

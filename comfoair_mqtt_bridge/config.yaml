@@ -23,4 +23,4 @@ schema:
   log_level: list(DEBUG|INFO|WARNING|ERROR)
 services:
   - mqtt:need
-url: https://github.com/BicycleJohny/ha-comfoair-rs232-mqtt-bridge
+url: https://github.com/BicycleJohny/ha-comfoair-mqtt-bridge
