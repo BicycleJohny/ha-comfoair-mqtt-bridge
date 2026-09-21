@@ -30,4 +30,6 @@ def test_climate_discovery_remains_a_primary_control() -> None:
     assert '"object_id": "ventilation"' in climate_config
     assert '"unique_id": "comfoair_mqtt_bridge_climate"' in climate_config
     assert '"entity_category"' not in climate_config
+    assert '"preset_modes": ["boost"]' in climate_config
+    assert '"preset_modes": ["none", "boost"]' not in climate_config
     assert '"current_temperature_topic": self._topic("climate/current_temperature")' in climate_config

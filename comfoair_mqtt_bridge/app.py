@@ -470,7 +470,7 @@ class Bridge:
             "fan_mode_state_topic": self._topic("climate/fan_mode"),
             "fan_mode_command_topic": self._topic("set/climate/fan_mode"),
             "fan_modes": ["off", "low", "medium", "high", "auto"],
-            "preset_modes": ["none", "boost"],
+            "preset_modes": ["boost"],
             "preset_mode_state_topic": self._topic("climate/preset"),
             "preset_mode_command_topic": self._topic("set/climate/preset"),
             "temperature_state_topic": self._topic("target_temperature"),
