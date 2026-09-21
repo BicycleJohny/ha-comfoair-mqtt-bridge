@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.12] - 2026-09-21
+
+- Stabilized the climate MQTT Discovery identity and corrected its current
+  temperature topic so the primary climate control remains visible after
+  updates.
+
 ## [0.2.11] - 2026-09-21
 
 - Kept the climate entity, Boost/Bathroom switch, and filter reset as primary
