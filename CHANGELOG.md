@@ -1,18 +1,31 @@
 # Changelog
 
-Všechny významné změny tohoto projektu jsou uvedeny v tomto souboru.
+All notable changes to this project are documented in this file.
+
+## [0.2.10] - 2026-09-21
+
+- Added Boost/Bathroom control through an MQTT Discovery switch.
+- The climate entity now supports the `boost` preset.
+- Boost is activated and deactivated by emulating short and long fan-button
+  presses on the CC-Ease controller.
+- Controls, fan calibration, delays, and reset buttons are marked as
+  configuration entities and appear in the device Settings section.
+- Binary states use the standard MQTT `ON`/`OFF` values for automatic
+  recognition by the MQTT Comfoair Card.
+- Filter status is now published as a `binary_sensor` with the
+  `filter_warning` key; the old `sensor.filter_status` Discovery entry is
+  removed.
 
 ## [0.2.9] - 2026-09-19
 
-- Přidán MQTT Discovery přepínač pro společné nastavení úrovní přívodního a
-  odtahového ventilátoru.
-- Po zapnutí přepínače se hodnoty `Supply Air Level` zkopírují do odpovídajících
-  `Return Air Level` a každá další změna se zapíše v páru.
-- Po vypnutí lze úrovně přívodu a odtahu nastavovat samostatně.
+- Added an MQTT Discovery switch for pairing supply and return fan levels.
+- When enabled, `Supply Air Level` values are copied to the corresponding
+  `Return Air Level` values, and every subsequent change is written as a pair.
+- When disabled, supply and return levels can be configured independently.
 
 ## [0.2.8] - 2026-09-18
 
-- Odstraněny nepoužívané `number` entity:
+- Removed unused `number` entities:
   - EWT High Temperature
   - EWT Low Temperature
   - EWT Speed Up
@@ -20,48 +33,49 @@ Všechny významné změny tohoto projektu jsou uvedeny v tomto souboru.
   - Kitchen Hood Speed Up
   - L1 Switch Off Delay Minutes
   - Postheating Target Temperature
-- Zbývající `number` entity používají MQTT Discovery režim `slider`.
-- Odstraněné entity se při aktualizaci automaticky smažou z MQTT Discovery.
-- Bypass zůstává pouze jako stavová entita, protože pro jeho nucenou aktivaci není
-  k dispozici ověřený příkaz protokolu.
-- Doplněna dokumentace k omezením lokalizace MQTT Discovery.
+- The remaining `number` entities use the MQTT Discovery `slider` mode.
+- Removed entities are automatically deleted from MQTT Discovery during updates.
+- Bypass remains a state-only entity because no verified protocol command is
+  available to force it on.
+- Added documentation about MQTT Discovery localization limitations.
 
 ## [0.2.7] - 2026-09-18
 
-- Rozšířen MQTT polling o dostupné údaje ComfoAir:
-  - otáčky a výkon ventilátorů,
-  - provozní hodiny,
-  - časové prodlevy,
-  - fyzické vstupy a analogové vstupy,
-  - bypass, předehřev, enthalpie a EWT/post-heating,
-  - diagnostika chyb.
-- Přidány MQTT Discovery entity typu `sensor`, `binary_sensor`, `number` a
-  `button`.
-- Přidány příkazy pro procenta ventilátorů, časové prodlevy, EWT/post-heating a
-  reset chyb.
+- Extended MQTT polling with available ComfoAir data:
+  - fan speeds and percentages,
+  - operation hours,
+  - time delays,
+  - physical and analog inputs,
+  - bypass, preheating, enthalpy, and EWT/post-heating,
+  - error diagnostics.
+- Added MQTT Discovery entities of type `sensor`, `binary_sensor`, `number`,
+  and `button`.
+- Added commands for fan percentages, time delays, EWT/post-heating, and error
+  reset.
 
 ## [0.2.6] - 2026-09-18
 
-- MQTT `climate` entity doplněna o aktuální teplotu vratného vzduchu.
-- Nastavena přesnost teploty na 0,5 °C.
+- Added the current return-air temperature to the MQTT `climate` entity.
+- Set the temperature precision to 0.5 °C.
 
 ## [0.2.5] - 2026-09-18
 
-- Přidáno MQTT Discovery tlačítko pro reset filtru.
+- Added an MQTT Discovery button for filter reset.
 
 ## [0.2.4] - 2026-09-18
 
-- Přidáno podrobné hex logování odeslaných a přijatých RS232/TCP rámců.
+- Added detailed hexadecimal logging for transmitted and received RS232/TCP
+  frames.
 
 ## [0.2.3] - 2026-09-18
 
-- Timeouty při čekání na odpověď nyní obsahují příkaz a očekávanou odpověď.
+- Response-wait timeouts now include the command and expected response.
 
 ## [0.2.2] - 2026-09-18
 
-- Zlepšeno rozlišení příčin ztráty spojení ComfoAir.
+- Improved differentiation of ComfoAir connection-loss causes.
 
 ## [0.2.1] - 2026-09-18
 
-- Odstraněna závislost na předem publikovaném GHCR image.
-- Home Assistant nyní sestavuje image lokálně z `build.yaml`.
+- Removed the dependency on a pre-published GHCR image.
+- Home Assistant now builds the image locally from `build.yaml`.

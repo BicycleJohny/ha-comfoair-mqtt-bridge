@@ -1,50 +1,60 @@
 # Changelog
 
+## [0.2.10] - 2026-09-21
+
+- Added Boost/Bathroom control through an MQTT Discovery switch.
+- The climate entity now supports the `boost` preset.
+- Controls and configuration entities are marked with the configuration
+  entity category.
+- Binary states use MQTT `ON`/`OFF` values for compatibility with the MQTT
+  Comfoair Card.
+- Filter status is published as `binary_sensor.filter_warning`; the original
+  `sensor.filter_status` Discovery entry is removed.
+
 ## [0.2.9] - 2026-09-19
 
-- Přidán MQTT Discovery přepínač pro společné nastavení úrovní přívodního a
-  odtahového ventilátoru.
-- Po zapnutí přepínače se hodnoty `Supply Air Level` zkopírují do odpovídajících
-  `Return Air Level` a každá další změna se zapíše v páru.
-- Po vypnutí lze úrovně přívodu a odtahu nastavovat samostatně.
+- Added an MQTT Discovery switch for pairing supply and return fan levels.
+- When enabled, `Supply Air Level` values are copied to the corresponding
+  `Return Air Level` values, and every subsequent change is written as a pair.
+- When disabled, supply and return levels can be configured independently.
 
 ## [0.2.8] - 2026-09-18
 
-- Odstraněny vybrané EWT, postheating, kitchen hood a L1 `number` entity.
-- Zbývající `number` entity používají režim `slider`.
-- Odstraněné MQTT Discovery entity se při aktualizaci mažou.
-- Bypass zůstává pouze jako stavová entita.
+- Removed selected EWT, post-heating, kitchen hood, and L1 `number` entities.
+- The remaining `number` entities use `slider` mode.
+- Removed MQTT Discovery entities are deleted during updates.
+- Bypass remains a state-only entity.
 
 ## [0.2.7] - 2026-09-18
 
-- Rozšířen MQTT polling o dostupné údaje ComfoAir.
-- Přidány MQTT Discovery entity typu `sensor`, `binary_sensor`, `number` a
-  `button`.
-- Přidány příkazy pro procenta ventilátorů, časové prodlevy, EWT/post-heating a
-  reset chyb.
+- Extended MQTT polling with available ComfoAir data.
+- Added MQTT Discovery entities of type `sensor`, `binary_sensor`, `number`,
+  and `button`.
+- Added commands for fan percentages, time delays, EWT/post-heating, and error
+  reset.
 
 ## [0.2.6] - 2026-09-18
 
-- MQTT `climate` entity doplněna o aktuální teplotu vratného vzduchu.
-- Nastavena přesnost teploty na 0,5 °C.
+- Added the current return-air temperature to the MQTT `climate` entity.
+- Set the temperature precision to 0.5 °C.
 
 ## [0.2.5] - 2026-09-18
 
-- Přidáno MQTT Discovery tlačítko pro reset filtru.
+- Added an MQTT Discovery button for filter reset.
 
 ## [0.2.4] - 2026-09-18
 
-- Přidáno podrobné hex logování odeslaných a přijatých rámců.
+- Added detailed hexadecimal logging for transmitted and received frames.
 
 ## [0.2.3] - 2026-09-18
 
-- Timeouty nyní obsahují příkaz a očekávanou odpověď.
+- Timeouts now include the command and expected response.
 
 ## [0.2.2] - 2026-09-18
 
-- Zlepšeno rozlišení příčin ztráty spojení ComfoAir.
+- Improved differentiation of ComfoAir connection-loss causes.
 
 ## [0.2.1] - 2026-09-18
 
-- Odstraněna závislost na předem publikovaném GHCR image.
-- Home Assistant nyní sestavuje image lokálně z `build.yaml`.
+- Removed the dependency on a pre-published GHCR image.
+- Home Assistant now builds the image locally from `build.yaml`.
